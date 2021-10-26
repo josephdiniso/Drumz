@@ -34,8 +34,8 @@ color: #FF9900;
 <div class="page-header">
 
 <!-- Title and Name --> 
-<h1>Your Title Here</h1> 
-<span style="font-size: 20px; line-height: 1.5em;"><strong>Names of Team Members Here</strong></span><br>
+<h1>Drumz - Virtual Drum Simulator</h1> 
+<span style="font-size: 20px; line-height: 1.5em;"><strong>Joseph DiNiso, Enzo Saba, Steven Shaumadine</strong></span><br>
 <span style="font-size: 18px; line-height: 1.5em;">Fall 2021 ECE 4554/5554 Computer Vision: Course Project</span><br>
 <span style="font-size: 18px; line-height: 1.5em;">Virginia Tech</span>
 <hr>
@@ -59,17 +59,59 @@ A figure that conveys the main idea behind the project or the main application b
 <br><br>
 <!-- Introduction -->
 <h3>Introduction</h3>
-Motivation behind the problem you are solving, what applications it has, any brief background on the particular domain you are working in (if not regular RBG photographs), etc. If you are using a new way to solve an existing problem, briefly mention and describe the existing approaches and tell us how your approach is new.
+A portable drum set can be created using computer vision to track a player’s placement and force applied to a surface by
+physical drumsticks and output the corresponding sound. The output sounds depend on which surface the drum sticks impact
+and the speed at which the player moves the drum sticks to calculate the impact on the surface.
 
 <br><br>
 <!-- Approach -->
 <h3>Approach</h3>
-Describe very clearly and systematically your approach to solve the problem. Tell us exactly what existing implementations you used to build your system. Tell us what obstacles you faced and how you addressed them. Justify any design choices or judgment calls you made in your approach.
+Our approach is to differentiate between objects with different colors. For example, the drumsticks will both be the
+same differentiable color from its surroundings. The different surfaces on the table will represent different drum types
+(e.g. bass, snare, etc.) and will be differentiated with different colors in the real world. This allows for our
+software to easily detect these different objects and make a contour around them. <br><br>
 
-<br><br>
+To determine when a drumstick has hit a surface we will use two main detectors; the first is when the surface is
+occluded by the tracked drumstick, and the second is when the drumstick’s downward velocity is 0. The volume of the beat
+will be determined by the velocity of the drumstick prior to hitting the surface. <br><br>
+
+Since each object that we wish to detect is a different color we are able to use color thresholding on the image to
+create masks for each object and then use contour detection to obtain a bounding box for each of them. This process can
+be seen below on a stock image of colored paper. <br>
+
+<img style="height: 300px; text-align:center; display:block" alt="" src="thresh.png"><br>
+<i>Example of thresholding where the image on the left is a stock image and the image on the right has been thresholded for
+pink and yellow colors.</i> <br>
+<img style="height: 300px; text-align:center; display:block" alt="" src="contours.png"><br>
+<i>Contour detection and outlining being used on the masked image
+</i> <br><br>
+Using the defined contours, we can determine impact when the tip of the drumstick enters the bounding box of any of the
+contours and then stops moving downward. <br><br>
+
+Once a working implementation is complete, we then plan to build onto the idea with the ability to play different
+instruments and build in a user interface that allows for the user to select instruments and gives basic instructions on
+how the program works.
+
 <!-- Results -->
 <h3>Experiments and results</h3>
-Provide details about the experimental set up (number of images/videos, number of datasets you experimented with, train/test split if you used machine learning algorithms, etc.). Describe the evaluation metrics you used to evaluate how well your approach is working. Include clear figures and tables, as well as illustrative qualitative examples if appropriate. Be sure to include obvious baselines to see if your approach is doing better than a naive approach (e.g. for classification accuracy, how well would a classifier do that made random decisions?). Also discuss any parameters of your algorithms, and tell us how you set the values of those parameters. You can also show us how the performance varies as you change those parameter values. Be sure to discuss any trends you see in your results, and explain why these trends make sense. Are the results as expected? Why?
+Our goal for this project is to use as little external sources of code and data as possible. Because we believe that the
+data needed for our project is fairly unique, the entirety of data collected will be from our own recordings. We will
+however not be implementing all of the code used for the project, we will mainly be using NumPy and OpenCV for our image
+processing and application of computer vision algorithms because they run significantly faster than any Python
+implementation of our own doing. <br><br>
+
+Data will be collected by simulated intended user actions, such as banging drumsticks on the surfaces and playing
+different combinations of notes. In order to have robust testing, we will make sure to test for the various different
+edge cases that often occur in computer vision applications such as dark footage, image noise, etc. Successful
+implementation would result in smooth audio playing in response to the user’s actions (e.g. when the user hits the
+surface with the drumsticks a sound is immediately played, random sounds do not play without cause, etc.). As well, we
+would like to test our implementation on other people who did not develop the project and were given limited
+instructions as to how it works; this is because we would like to make a user-friendly interface that does not require
+much training. <br><br>
+
+Overall, the project will be deemed successful if a fluid drum set simulator can be created that is both fun,
+responsive, and can display various different computer vision algorithms such as thresholding, contour detection, motion
+and velocity estimation, and collision detection.
 
 <br><br>
 
