@@ -29,6 +29,14 @@ video {
   *zoom: 1;
 }
 
+center {
+  display: block; 
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+  display:block
+}
+
 audio:not([controls]) {
   display: none;
 }

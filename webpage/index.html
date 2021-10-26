@@ -40,21 +40,21 @@ color: #FF9900;
 <span style="font-size: 18px; line-height: 1.5em;">Virginia Tech</span>
 <hr>
 
-Please see <a href="http://vision.cs.utexas.edu/projects/adapted_attributes/">this</a> for an example of how to lay out the various details of your project. You may need to provide more details than this, because you will not be submitting an associated paper to accompany the webpage. So the page should be self-contained.
+<!-- Please see <a href="http://vision.cs.utexas.edu/projects/adapted_attributes/">this</a> for an example of how to lay out the various details of your project. You may need to provide more details than this, because you will not be submitting an associated paper to accompany the webpage. So the page should be self-contained. -->
 
 <!-- Goal -->
 <h3>Abstract</h3>
 
-One or two sentences on the motivation behind the problem you are solving. One or two sentences describing the approach you took. One or two sentences on the main result you obtained.
-<br><br>
+Our goal is to implement a portable augmented reality drumset. Using computer vision techniques and live webcam footage, we will build a fluid drumset simulator.
+<!-- One or two sentences describing the approach you took. One or two sentences on the main result you obtained. -->
 <!-- figure -->
-<h3>Teaser figure</h3>
-A figure that conveys the main idea behind the project or the main application being addressed.
-<br><br>
-<!-- Main Illustrative Figure --> 
-<div style="text-align: center;">
-<img style="height: 200px;" alt="" src="mainfig.png">
-</div>
+<!-- <h3>Teaser figure</h3> -->
+<!-- A figure that conveys the main idea behind the project or the main application being addressed. -->
+<!-- <br><br> -->
+<!-- Main Illustrative Figure  -->
+<!-- <div style="text-align: center;"> -->
+<!-- <img style="height: 200px;" alt="" src="mainfig.png"> -->
+<!-- </div> -->
 
 <br><br>
 <!-- Introduction -->
@@ -79,12 +79,12 @@ Since each object that we wish to detect is a different color we are able to use
 create masks for each object and then use contour detection to obtain a bounding box for each of them. This process can
 be seen below on a stock image of colored paper. <br>
 
-<img style="height: 300px; text-align:center; display:block" alt="" src="thresh.png"><br>
-<i>Example of thresholding where the image on the left is a stock image and the image on the right has been thresholded for
-pink and yellow colors.</i> <br>
-<img style="height: 300px; text-align:center; display:block" alt="" src="contours.png"><br>
-<i>Contour detection and outlining being used on the masked image
-</i> <br><br>
+<img style="height: 300px; display: block; margin-left: auto; margin-right: auto; width: 50%; display:block" alt="" src="thresh.png"><br>
+<p style="text-align: center;"><i>Example of thresholding where the image on the left is a stock image
+and the image on the right has been thresholded for pink and yellow colors.</i></p> <br>
+<img style="height: 300px; width: 300px; display: block; margin-left: auto; margin-right: auto; display:block" alt="" src="contours.png"><br>
+<p style="text-align: center"><i>Contour detection and outlining being used on the masked image
+</i></p> <br><br>
 Using the defined contours, we can determine impact when the tip of the drumstick enters the bounding box of any of the
 contours and then stops moving downward. <br><br>
 
@@ -94,7 +94,7 @@ how the program works.
 
 <!-- Results -->
 <h3>Experiments and results</h3>
-Our goal for this project is to use as little external sources of code and data as possible. Because we believe that the
+Our goal for this project is to use as few external sources of code and data as possible. Because we believe that the
 data needed for our project is fairly unique, the entirety of data collected will be from our own recordings. We will
 however not be implementing all of the code used for the project, we will mainly be using NumPy and OpenCV for our image
 processing and application of computer vision algorithms because they run significantly faster than any Python
@@ -115,37 +115,34 @@ and velocity estimation, and collision detection.
 
 <br><br>
 
-<!-- Main Results Figure --> 
+<!-- Main Results Figure 
 <div style="text-align: center;">
 <img style="height: 300px;" alt="" src="results.png">
 </div>
 <br><br>
 
-<!-- Results -->
 <h3>Qualitative results</h3>
 Show several visual examples of inputs/outputs of your system (success cases and failures) that help us better understand your approach.
 <br><br>
 
-<!-- Main Results Figure --> 
+
 <div style="text-align: center;">
 <img style="height: 300px;" alt="" src="qual_results.png">
 </div>
 <br><br>
 
-<!-- Conclusion -->
 <h3>Conclusion</h3>
 This report has described .... Briefly summarize what you have done. 
 <br><br>
 
-<!-- References -->
 <h3>References</h3>
 Provide a list of references to other work that supported your project.
-<br><br>
+<br><br> -->
 
 
   <hr>
   <footer> 
-  <p>© Names of Team Members Here</p>
+  <p>© Enzo Saba, Joseph DiNiso, Steven Shaumadine</p>
   </footer>
 </div>
 </div>
