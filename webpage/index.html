@@ -10,6 +10,7 @@
 
 <!-- Le styles -->  
   <link href="css/bootstrap.css" rel="stylesheet">
+  <link rel="icon" href="drum_icon.png">
 <style>
 body {
 padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
@@ -73,11 +74,16 @@ software to easily detect these different objects and make a contour around them
 
 To determine when a drumstick has hit a surface we will use two main detectors; the first is when the surface is
 occluded by the tracked drumstick, and the second is when the drumstick’s downward velocity is 0. The volume of the beat
-will be determined by the velocity of the drumstick prior to hitting the surface. <br><br>
+will be determined by the velocity of the drumstick prior to hitting the surface. This velocity estimation will be determined
+by dividing the number of pixels that the drum tip moves over the total number of pixels in the image, scaled by the size
+of the drum tip. Scaling it by the size of the drum tip allows for volume estimation to be consistent at any distance in
+the frame. For example if a user was 10ft away from the camera and moved the drumsticks halfway across the frame, it would
+be much faster than if a user 2ft away moved the drumsticks halfway across the frame. <br><br>
 
 Since each object that we wish to detect is a different color we are able to use color thresholding on the image to
-create masks for each object and then use contour detection to obtain a bounding box for each of them. This process can
-be seen below on a stock image of colored paper. <br>
+create masks for each object and then use contour detection on the masks ORed together to obtain a bounding box for each
+of them. This process can be seen below on stock images of colored paper that we performed color thresholding and then
+contour detection to get bounding boxes around them. <br>
 
 <img style="height: 300px; display: block; margin-left: auto; margin-right: auto; width: 50%; display:block" alt="" src="thresh.png"><br>
 <p style="text-align: center;"><i>Example of thresholding where the image on the left is a stock image
@@ -89,29 +95,36 @@ Using the defined contours, we can determine impact when the tip of the drumstic
 contours and then stops moving downward. <br><br>
 
 Once a working implementation is complete, we then plan to build onto the idea with the ability to play different
-instruments and build in a user interface that allows for the user to select instruments and gives basic instructions on
-how the program works.
+instruments and create a user interface that allows for the user to select instruments and gives basic instructions on
+how the program works. Our goal is for this project to display many of the different elements of computer vision such as
+image threshholding, contour detection, velocity estimation, etc. and combine them into a fun and interactive project
+for people to enjoy.
 
 <!-- Results -->
 <h3>Experiments and results</h3>
-Our goal for this project is to use as few external sources of code and data as possible. Because we believe that the
-data needed for our project is fairly unique, the entirety of data collected will be from our own recordings. We will
-however not be implementing all of the code used for the project, we will mainly be using NumPy and OpenCV for our image
-processing and application of computer vision algorithms because they run significantly faster than any Python
-implementation of our own doing. <br><br>
+Our goal for this project is to use as few external sources of code and data as possible, we wish to collect and write
+as much of the project ourselves. Because we believe that the data needed for our project is fairly unique, the entirety
+of data collected will be from our own recordings. We will however not be implementing all of the code used for the 
+project, we will mainly be using NumPy and OpenCV for our image processing and application of computer vision algorithms 
+because they run significantly faster than any Python implementation of our own doing. This is because they are written
+in C++ and are compiled to be as efficient as possible. Because this is a live simulation, our code will need to run
+as fast as possible, so in the case where an algorithm we implement does not run fast enough on Python we will consider
+writing it in C++ and making Python bindings.<br><br>
 
-Data will be collected by simulated intended user actions, such as banging drumsticks on the surfaces and playing
+Data will be collected by simulating intended user actions, such as banging drumsticks on the surfaces and playing
 different combinations of notes. In order to have robust testing, we will make sure to test for the various different
-edge cases that often occur in computer vision applications such as dark footage, image noise, etc. Successful
-implementation would result in smooth audio playing in response to the user’s actions (e.g. when the user hits the
+edge cases that often occur in computer vision applications. These include dark footage, image noise, and any other sources
+of error often found in image processing. <br><br> 
+
+Successful implementation would result in smooth audio playing in response to the user’s actions (e.g. when the user hits the
 surface with the drumsticks a sound is immediately played, random sounds do not play without cause, etc.). As well, we
 would like to test our implementation on other people who did not develop the project and were given limited
 instructions as to how it works; this is because we would like to make a user-friendly interface that does not require
-much training. <br><br>
-
-Overall, the project will be deemed successful if a fluid drum set simulator can be created that is both fun,
-responsive, and can display various different computer vision algorithms such as thresholding, contour detection, motion
-and velocity estimation, and collision detection.
+much training. Other determiners of success are fast processing times, we wish to create an algorithm that can run
+on a normal laptop smoothly without any visible lag. One way that we can improve this is by only processing every
+3rd frame, but displaying them at 60FPS to avoid long computation times. The project will be deemed successful if a fluid 
+drum set simulator can be created that is both fun, responsive, and can display various different computer vision 
+algorithms such as thresholding, contour detection, motion and velocity estimation, and collision detection. 
 
 <br><br>
 
