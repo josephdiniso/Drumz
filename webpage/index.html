@@ -67,38 +67,60 @@ and the speed at which the player moves the drum sticks to calculate the impact 
 <br><br>
 <!-- Approach -->
 <h3>Approach</h3>
-Our approach is to differentiate between objects with different colors. For example, the drumsticks will both be the
-same differentiable color from its surroundings. The different surfaces on the table will represent different drum types
-(e.g. bass, snare, etc.) and will be differentiated with different colors in the real world. This allows for our
-software to easily detect these different objects and make a contour around them. <br><br>
+Our basic approach is simple. We want to track the players’ movements with the drumsticks in the video feed and the
+velocity of the drumsticks before impacting a virtual surface, or also known as one of the virtual drums. To succeed in
+accurately detecting a player’s motions with the drumsticks, we would need to make some assumptions about the drumsticks
+the player is using. Before loading the virtual drums program, we will require the player to disclose the color of their
+drumstick to the program so that the program can distinguish the drums from the background. This gives the player the
+freedom to choose among the available options for drumsticks in their immediate vicinity. The program will check to make
+sure it can distinguish the drumsticks from the background before proceeding to running the program. Possible scenarios
+where the program may not be able to differentiate drumsticks include the drumstick colors are not unique with respect
+to the background, drumsticks are too small, etc. If the program can not differentiate the drumsticks, it will recommend
+to the player to choose larger drumsticks with brighter colors that are different from the colors of its surroundings.
+Assuming the player does this, the program requires the player to disclose the drumstick color again and try to detect
+the drumsticks again. Should the program succeed, the player is ready to start playing the drums. The only other
+assumption we will make about the player is that they are located in the center of the screen. This is because to fully
+encapsulate our vision of the virtual drum, the player should be able to play anywhere without requiring much material.
+<br><br>
 
-To determine when a drumstick has hit a surface we will use two main detectors; the first is when the surface is
-occluded by the tracked drumstick, and the second is when the drumstick’s downward velocity is 0. The volume of the beat
-will be determined by the velocity of the drumstick prior to hitting the surface. This velocity estimation will be determined
-by dividing the number of pixels that the drum tip moves over the total number of pixels in the image, scaled by the size
-of the drum tip. Scaling it by the size of the drum tip allows for volume estimation to be consistent at any distance in
-the frame. For example if a user was 10ft away from the camera and moved the drumsticks halfway across the frame, it would
-be much faster than if a user 2ft away moved the drumsticks halfway across the frame. <br><br>
+The virtual drums themselves (the surfaces the players will strike with the drumsticks to produce a noise) are virtual
+and can only be seen on screen. To an onlooker, the player would appear to be striking the air with drumsticks. The
+program detects the location of the drumsticks and if they fall within the circular threshold in the video feed then the
+drumsticks’ velocity is inputted to a function that will display the corresponding sound. These thresholds placed in the
+video feed to reflect each of the virtual drums in the drumsets cannot be constant between video feeds unless we were to
+make another assumption about the players’ location within the video feed. Instead, we will make the virtual drums’
+locations in the video feed relative to the players’ distance from the camera. Should the camera detect the player is
+further away, the thresholds would decrease in size and vice versa for a player that is closer to the camera. The
+different surfaces produced by the program will represent different drum types (e.g. bass, snare, etc.) as seen in
+figure 1 below and their locations will correspond to those of an actual drum set from the player’s point of view. The
+point of view of the program can be seen in figure 2 below. The actual drum set we plan on implementing deprecates the
+typical drum set for simplicity <br><br>
 
-Since each object that we wish to detect is a different color we are able to use color thresholding on the image to
-create masks for each object and then use contour detection on the masks ORed together to obtain a bounding box for each
-of them. This process can be seen below on stock images of colored paper that we performed color thresholding and then
-contour detection to get bounding boxes around them. <br>
 
-<img style="height: 300px; display: block; margin-left: auto; margin-right: auto; width: 50%; display:block" alt="" src="thresh.png"><br>
-<p style="text-align: center;"><i>Example of thresholding where the image on the left is a stock image
-and the image on the right has been thresholded for pink and yellow colors.</i></p> <br>
-<img style="height: 300px; width: 300px; display: block; margin-left: auto; margin-right: auto; display:block" alt="" src="contours.png"><br>
-<p style="text-align: center"><i>Contour detection and outlining being used on the masked image
-</i></p> <br><br>
-Using the defined contours, we can determine impact when the tip of the drumstick enters the bounding box of any of the
-contours and then stops moving downward. <br><br>
 
-Once a working implementation is complete, we then plan to build onto the idea with the ability to play different
-instruments and create a user interface that allows for the user to select instruments and gives basic instructions on
-how the program works. Our goal is for this project to display many of the different elements of computer vision such as
-image threshholding, contour detection, velocity estimation, etc. and combine them into a fun and interactive project
-for people to enjoy.
+<img style="height: 300px; display: block; margin-left: auto; margin-right: auto; display:block" alt="" src="drums.png"><br>
+<p style="text-align: center;"><i>Figure 1: Typical Drum Set</i></p> <br> <br>
+
+<img style="height: 300px; display: block; margin-left: auto; margin-right: auto; display:block" alt=""
+  src="drum-draw.png"><br>
+<p style="text-align: center;"><i>The player hits the bass drum</i></p> <br> <br>
+
+
+To determine when a drumstick has hit a virtual surface we will use one main detector; when the surface is occluded by
+the tracked drumstick. As seen in figure 3 below, the player’s right drumstick has occluded the virtual surface of the
+bass drum so a bass sound with intensity corresponding to the velocity with which the drumstick entered the surface
+would be outputted. The drumsticks’ velocity is always tracked. The reading for velocity is taken by calculating the
+difference between the drumsticks position during a time interval. This interval will have to be determined during
+testing and will be smaller than a second. The volume of the beat will be determined by the velocity of the drumstick
+once the drumstick has hit the surface. <br><br>
+
+<img style="height: 300px; display: block; margin-left: auto; margin-right: auto; display:block" alt=""
+  src="thresh.png"><br>
+<p style="text-align: center;"><i>Example color thresholding</i></p> <br> <br>
+
+<img style="height: 300px; display: block; margin-left: auto; margin-right: auto; display:block" alt=""
+  src="contours.png"><br>
+<p style="text-align: center;"><i>Example of contour detection</i></p> <br> <br>
 
 <!-- Results -->
 <h3>Experiments and results</h3>
