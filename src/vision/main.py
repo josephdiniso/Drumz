@@ -4,6 +4,9 @@ from typing import Tuple, List
 import numpy as np
 import imutils
 import cv2
+# from pydub import AudioSegment
+# from pydub.playback import play
+import playsound
 
 import time
 from enum import Enum
@@ -18,11 +21,24 @@ class States(Enum):
     CONFIRM = 5
 
 
+class CollisionBox:
+    def __init__(self, name, song_file):
+        self.last_collision = 0
+        self.name = name
+        self.song_file = song_file
+
+    def has_collision(self):
+        if float(time.time() - self.last_collision) > 0.5:
+            print(self.name)
+            self.last_collision = time.time()
+            playsound.playsound(self.song_file, False)
+
+
 class Detector:
     def __init__(self):
         self.height = 700
         self.width = 700
-        self.timer_count = 1
+        self.timer_count = 2
         self.frame = None
         self.gray = None
         self.frame_queue = []
@@ -36,7 +52,10 @@ class Detector:
                                    (int(self.width * 0.3), int(self.height * 0.7)),
                                    (int(self.width * 0.7), int(self.height * 0.7))]
         self.colors = []
+        self.height_thresh = self.height * 0.7
 
+        self.boxes = [CollisionBox("one", "drum1.wav"), CollisionBox("two", "drum2.wav"),
+                      CollisionBox("three", "drum3.wav"), CollisionBox("four", "drum4.wav")]
         self.webcam()
 
     def get_color(self) -> None:
@@ -136,11 +155,11 @@ class Detector:
         if self.frame_queue:
             # Motion estimation
             delta = cv2.absdiff(self.frame_queue[0], gray)
-            thresh = cv2.threshold(delta, 25, 255, cv2.THRESH_BINARY)[1]
+            thresh = cv2.threshold(delta, 20, 255, cv2.THRESH_BINARY)[1]
             thresh = cv2.dilate(thresh, None, iterations=2)
             thresh = cv2.bitwise_and(self.frame, self.frame, mask=thresh)
             # Color range
-            buffer = 5
+            buffer = 20
             master_mask = np.zeros(thresh.shape[:2], dtype="uint8")
             # Color thresholding
             for color in self.colors:
@@ -185,12 +204,20 @@ class Detector:
         contours = imutils.grab_contours(contours)
         drawn_contours = self.frame.copy()
         for c in contours:
-            if cv2.contourArea(c) < 500:
+            if cv2.contourArea(c) < 200:
                 continue
+            M = cv2.moments(c)
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            if cY > self.height_thresh:
+                for i in range(1, 5):
+                    if (self.width // 4) * (i - 1) < cX < (self.width // 4) * i:
+                        self.boxes[i - 1].has_collision()
+                        break
             (x, y, w, h) = cv2.boundingRect(c)
             cv2.rectangle(drawn_contours, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        # cv2.imshow("mask", mask)
-        # cv2.imshow("Delta", drawn_contours)
+        cv2.imshow("mask", mask)
+        cv2.imshow("Contours", drawn_contours)
         return contours
 
     def webcam(self) -> None:
@@ -239,7 +266,7 @@ class Detector:
                 self.colors.clear()
             # Populates frame queue for motion estimation
             self.frame_queue.append(gray.copy())
-            if len(self.frame_queue) > 10:
+            if len(self.frame_queue) > 15:
                 self.frame_queue.pop(0)
             cv2.imshow('Input', processed)
 
