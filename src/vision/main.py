@@ -27,7 +27,13 @@ class CollisionBox:
         self.name = name
         self.song_file = song_file
 
-    def has_collision(self):
+    def has_collision(self) -> None:
+        """
+        Checks if enough time has passed to play a sound
+
+        Returns:
+            None
+        """
         if float(time.time() - self.last_collision) > 0.5:
             print(self.name)
             self.last_collision = time.time()
@@ -42,11 +48,9 @@ class Detector:
         self.frame = None
         self.gray = None
         self.frame_queue = []
-        self.left_color = None
-        self.right_color = None
         self.time_elapsed = 0
-        self.state = States.INIT
         self.start_time = 0
+        self.state = States.INIT
         self.circle_coordinates = [(int(self.width * 0.3), int(self.height * 0.3)),
                                    (int(self.width * 0.7), int(self.height * 0.3)),
                                    (int(self.width * 0.3), int(self.height * 0.7)),
