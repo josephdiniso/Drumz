@@ -4,12 +4,12 @@ from typing import Tuple, List
 import numpy as np
 import imutils
 import cv2
-# from pydub import AudioSegment
-# from pydub.playback import play
 import playsound
 
 import time
 from enum import Enum
+import pickle
+import argparse
 
 
 class States(Enum):
@@ -22,10 +22,11 @@ class States(Enum):
 
 
 class CollisionBox:
-    def __init__(self, name, song_file):
+    def __init__(self, name: str, song_file: str, color: np.array):
         self.last_collision = 0
         self.name = name
         self.song_file = song_file
+        self.color = np.array(color)
 
     def has_collision(self) -> None:
         """
@@ -39,9 +40,12 @@ class CollisionBox:
             self.last_collision = time.time()
             playsound.playsound(self.song_file, False)
 
+    def reset_collision(self) -> None:
+        self.last_collision = time.time() - 1
+
 
 class Detector:
-    def __init__(self):
+    def __init__(self, prev: bool):
         self.height = 700
         self.width = 700
         self.timer_count = 2
@@ -50,16 +54,22 @@ class Detector:
         self.frame_queue = []
         self.time_elapsed = 0
         self.start_time = 0
-        self.state = States.INIT
+        self.colors = []
+        if not prev:
+            self.state = States.INIT
+        else:
+            self.state = States.CONFIRM
+            with open("colors.pickle", "rb") as f:
+                self.colors = pickle.load(f)
         self.circle_coordinates = [(int(self.width * 0.3), int(self.height * 0.3)),
                                    (int(self.width * 0.7), int(self.height * 0.3)),
                                    (int(self.width * 0.3), int(self.height * 0.7)),
                                    (int(self.width * 0.7), int(self.height * 0.7))]
-        self.colors = []
-        self.height_thresh = self.height * 0.7
 
-        self.boxes = [CollisionBox("one", "drum1.wav"), CollisionBox("two", "drum2.wav"),
-                      CollisionBox("three", "drum3.wav"), CollisionBox("four", "drum4.wav")]
+        self.height_thresh = self.height * 0.8
+
+        self.boxes = [CollisionBox("one", "drum1.mp3", (255, 0, 0)), CollisionBox("two", "drum2.mp3", (0, 255, 0)),
+                      CollisionBox("three", "drum3.mp3", (0, 0, 255)), CollisionBox("four", "drum4.mp3", (255, 0, 255))]
         self.webcam()
 
     def get_color(self) -> None:
@@ -141,9 +151,12 @@ class Detector:
         height_factor = 3.5
         frame = self.frame.copy()
         for i in range(4):
+            scale_factor = 1.0 if float(time.time() - self.boxes[i].last_collision) < 0.2 else 0.7
             new_val = (frame[int((self.height // 4) * height_factor):,
-                       (self.width // 4) * i:, :] + colors[i]) / 2
-            frame[int((self.height // 4) * height_factor):, (self.width // 4) * i:, :] = new_val
+                       (self.width // 4) * i:(self.width // 4) * (i + 1), :]
+                       + self.boxes[i].color * scale_factor) / 2
+            frame[int((self.height // 4) * height_factor):, (self.width // 4) * i:(self.width // 4) * (i + 1),
+            :] = new_val
         frame[frame > 255] = 255
         return frame
 
@@ -160,19 +173,18 @@ class Detector:
             # Motion estimation
             delta = cv2.absdiff(self.frame_queue[0], gray)
             thresh = cv2.threshold(delta, 20, 255, cv2.THRESH_BINARY)[1]
-            thresh = cv2.dilate(thresh, None, iterations=2)
+            thresh = cv2.dilate(thresh, np.ones((10, 10)), iterations=3)
             thresh = cv2.bitwise_and(self.frame, self.frame, mask=thresh)
+            cv2.imshow("motion", thresh)
             # Color range
             buffer = 20
             master_mask = np.zeros(thresh.shape[:2], dtype="uint8")
             # Color thresholding
             for color in self.colors:
                 mask = cv2.inRange(thresh, (color - buffer).astype(int), (color + buffer).astype(int))
-                mask = cv2.dilate(mask, None, iterations=5)
                 master_mask = cv2.bitwise_or(mask, master_mask)
             # Fills the mask for easier detection
-            rect_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 30))
-            master_mask = cv2.morphologyEx(master_mask, cv2.MORPH_CLOSE, rect_kernel)
+            master_mask = cv2.dilate(master_mask, np.ones((12, 12)), iterations=3)
             return master_mask
         else:
             return np.zeros((self.width, self.height), dtype="uint8")
@@ -213,11 +225,13 @@ class Detector:
             M = cv2.moments(c)
             cX = int(M["m10"] / M["m00"])
             cY = int(M["m01"] / M["m00"])
-            if cY > self.height_thresh:
-                for i in range(1, 5):
-                    if (self.width // 4) * (i - 1) < cX < (self.width // 4) * i:
+
+            for i in range(1, 5):
+                if (self.width // 4) * (i - 1) < cX < (self.width // 4) * i:
+                    if cY > self.height_thresh:
                         self.boxes[i - 1].has_collision()
-                        break
+                    else:
+                        self.boxes[i - 1].reset_collision()
             (x, y, w, h) = cv2.boundingRect(c)
             cv2.rectangle(drawn_contours, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.imshow("mask", mask)
@@ -247,6 +261,8 @@ class Detector:
             # If color is confirmed, perform masking and contour detection
             if self.state == States.CONFIRM:
                 contours = self.generate_contours(gray)
+                with open("colors.pickle", "wb") as f:
+                    pickle.dump(self.colors, f)
             # Otherwise prompt the user to calibrate
             else:
                 processed = self.prompt_color()
@@ -270,7 +286,7 @@ class Detector:
                 self.colors.clear()
             # Populates frame queue for motion estimation
             self.frame_queue.append(gray.copy())
-            if len(self.frame_queue) > 15:
+            if len(self.frame_queue) > 3:
                 self.frame_queue.pop(0)
             cv2.imshow('Input', processed)
 
@@ -279,7 +295,10 @@ class Detector:
 
 
 def main():
-    detector = Detector()
+    parser = argparse.ArgumentParser(description='Virtual Drums')
+    parser.add_argument("-prev", action="store_true", help="Use previously stored colors")
+    args = parser.parse_args()
+    detector = Detector(args.prev)
 
 
 if __name__ == "__main__":
