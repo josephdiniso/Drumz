@@ -129,7 +129,9 @@ class Detector:
             self.state = States.INIT
         else:
             self.state = States.CONFIRM_2
-            with open("colors.pickle", "rb") as f:
+            color_prefix = "../../resources/user-data/"
+            color_file = os.path.join(color_prefix, "colors.pickle")
+            with open(color_file, "rb") as f:
                 self.colors = pickle.load(f)
         self.circle_coordinates = [(int(self.width * 0.1), int(self.height * 0.93)),
                                    (int(self.width * 0.93), int(self.height * 0.93)),
@@ -361,7 +363,9 @@ class Detector:
                     self.state = States.CONFIRM_1
                 else:
                     self.state = States.CONFIRM_2
-                with open("colors.pickle", "wb") as f:
+                color_prefix = "../../resources/user-data/"
+                color_file = os.path.join(color_prefix, "colors.pickle")
+                with open(color_file, "wb") as f:
                     pickle.dump(self.colors, f)
             # If escape is pressed and the user is prompted to confirm
             elif c == 27 and self.state in (States.DONE_1, States.DONE_2):
