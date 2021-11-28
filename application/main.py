@@ -2,6 +2,11 @@
 import tkinter as tk
 import os
 from tkinter import filedialog
+import pickle
+
+# import application.vision.detection
+from vision.detection import Detector
+
 
 # The GUI contains a field to enter the path to a directory, a button to find and display the name
 # of the sound files in that directory, and a button to exit the configuration GUI and start a DRUMZ session
@@ -18,7 +23,7 @@ class DrumzGUI:
         self.soundFiles = [tk.StringVar(value="First sound not found"), tk.StringVar(value="Second sound not found"),
                            tk.StringVar(value="Third sound not found"), tk.StringVar(value="Fourth sound not found"),
                            tk.StringVar(value="Fifth sound not found")]
-        
+
         self.frame1 = tk.Frame(self.mainwindow, container='false')
 
         # Title of the GUI
@@ -35,7 +40,12 @@ class DrumzGUI:
 
         # Entry field to enter a directory path
         self.directorypath = tk.Entry(self.frame1)
-        self.directorypathstring = tk.StringVar(value="/")
+        txt = "/"
+        scan_path = "../resources/user-data/scan-path.pickle"
+        if os.path.exists(scan_path):
+            with open(scan_path, "rb") as f:
+                txt = pickle.load(f)
+        self.directorypathstring = tk.StringVar(value=txt)
         self.directorypath.configure(background='#ffffff', cursor='arrow', exportselection='true',
                                      font='{Arial} 10 {}', textvariable=self.directorypathstring)
         self.directorypath.configure(foreground='#000000', highlightcolor='#000000', insertbackground='#050040',
@@ -64,7 +74,7 @@ class DrumzGUI:
         # Button to browse for files
         self.browse = tk.Button(self.frame1)
         self.browse.configure(activebackground='#050040', activeforeground='#ffffff', background='#8787e7',
-                                     cursor='hand2')
+                              cursor='hand2')
         self.browse.configure(font='{Arial} 9 {}', foreground='#ffffff', text='Browse')
         self.browse.pack(pady='5', side='top')
         self.browse.configure(command=self.browse_files)
@@ -135,7 +145,7 @@ class DrumzGUI:
         self.file5.configure(background='#ffffff', font='{Arial} 11 {}', foreground='#000000',
                              highlightbackground='#000000', textvariable=self.soundFiles[4])
         self.file5.configure(insertbackground='#050040', width='40')
-        _text_ = '''Joe is bad at coding'''
+        _text_ = '''Fifth sound not found'''
         self.file5.delete('0', 'end')
         self.file5.insert('0', _text_)
         self.file5.pack(pady='2', side='top')
@@ -155,7 +165,8 @@ class DrumzGUI:
     # Called when button to scan directory is clicked
     def scan_directory(self):
         directoryPath = self.directorypathstring.get()
-
+        with open("../resources/user-data/scan-path.pickle", "wb") as f:
+            pickle.dump(directoryPath, f)
         # if the directory path is empty we don't do anything
         if directoryPath:
             allFilesInDirectory = os.listdir(directoryPath)
@@ -166,7 +177,7 @@ class DrumzGUI:
                 name, extension = os.path.splitext(allFilesInDirectory[i])
 
                 if extension == ".mp3" or extension == ".wav":
-                    self.potentialSoundFiles.append(allFilesInDirectory[i])
+                    self.potentialSoundFiles.append(os.path.join(directoryPath, allFilesInDirectory[i]))
 
             # ensure that no more than 5 sound files are selected
             if len(self.potentialSoundFiles) > 5:
@@ -174,42 +185,41 @@ class DrumzGUI:
 
             # set the text of the entries to the names of the sound files found
             for i in range(len(self.potentialSoundFiles)):
-                self.soundFiles[i].set(self.potentialSoundFiles[i])
+                self.soundFiles[i].set(os.path.basename(os.path.normpath(self.potentialSoundFiles[i])))
 
     # called when browse button is clicked
     def browse_files(self):
-    	# a dialog is shown in the base directory of the system asking for an mp3 or wav file
-    	filename = filedialog.askopenfilename(initialdir = self.directorypathstring,
-                                          title = "Select Sounds",
-                                          filetypes = (("Audio Files",
-                                                        "*.mp3 *.wav*"),
-                                                       ("all files",
-                                                        "*.*")))
+        # a dialog is shown in the base directory of the system asking for an mp3 or wav file
+        filename = filedialog.askopenfilename(initialdir=self.directorypathstring,
+                                              title="Select Sounds",
+                                              filetypes=(("Audio Files",
+                                                          "*.mp3 *.wav*"),
+                                                         ("all files",
+                                                          "*.*")))
 
-    	# we extract the basename of the file and the directory path (to remember where to browse for the next file)
-    	file_basename = os.path.basename(filename)
-    	self.directorypathstring.set(os.path.dirname(filename))
+        # we extract the basename of the file and the directory path (to remember where to browse for the next file)
+        file_basename = os.path.basename(filename)
+        self.directorypathstring.set(os.path.dirname(filename))
 
-    	if file_basename:
-    		name, extension = os.path.splitext(file_basename)
-    		if extension == ".mp3" or extension == ".wav":
-    			if len(self.potentialSoundFiles) == 5:
-    				self.potentialSoundFiles[4] = self.potentialSoundFiles[3]
-    				self.potentialSoundFiles[3] = self.potentialSoundFiles[2]
-    				self.potentialSoundFiles[2] = self.potentialSoundFiles[1]
-    				self.potentialSoundFiles[1] = self.potentialSoundFiles[0]
-    				self.potentialSoundFiles[0] = file_basename
+        if file_basename:
+            name, extension = os.path.splitext(file_basename)
+            if extension == ".mp3" or extension == ".wav":
+                if len(self.potentialSoundFiles) == 5:
+                    self.potentialSoundFiles[4] = self.potentialSoundFiles[3]
+                    self.potentialSoundFiles[3] = self.potentialSoundFiles[2]
+                    self.potentialSoundFiles[2] = self.potentialSoundFiles[1]
+                    self.potentialSoundFiles[1] = self.potentialSoundFiles[0]
+                    self.potentialSoundFiles[0] = file_basename
+                elif len(self.potentialSoundFiles) < 5:
+                    self.potentialSoundFiles.append(file_basename)
 
-    			elif len(self.potentialSoundFiles) < 5:
-    				self.potentialSoundFiles.append(file_basename) 
-
-    			for i in range(len(self.potentialSoundFiles)):
-    				self.soundFiles[i].set(self.potentialSoundFiles[i])
+                for i in range(len(self.potentialSoundFiles)):
+                    self.soundFiles[i].set(os.path.basename(os.path.normpath(self.potentialSoundFiles[i])))
 
     # called when the play now button is clicked
     def start_playing(self):
-        if len(self.potentialSoundFiles) > 0:
-            print(self.potentialSoundFiles)
+        if len(self.potentialSoundFiles) > 3:
+            detector = Detector(False, self.potentialSoundFiles)
 
 
 if __name__ == '__main__':

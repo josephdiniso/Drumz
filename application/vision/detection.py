@@ -41,7 +41,13 @@ class CollisionBox:
             bias: Sound bias in decibels to control the volume in post
         """
         self.last_collision = 0
-        self.song = AudioSegment.from_mp3(song_file) + bias
+        _, extension = os.path.splitext(song_file)
+        if extension == ".mp3":
+            self.song = AudioSegment.from_mp3(song_file) + bias
+        elif extension == ".wav":
+            self.song = AudioSegment.from_wav(song_file) + bias
+        else:
+            raise NotImplementedError(f"File type {extension} not implemented.")
         self.color = np.array(color)
         self.velocity_timer = 0
 
@@ -56,7 +62,7 @@ class CollisionBox:
             None
         """
         if float(time.time() - self.last_collision) > 0.5:
-            velocity = 56 / (time.time() - self.velocity_timer)
+            velocity = 56 / ((time.time() - self.velocity_timer) + 1e-7)
             # Volume calculation
             scale = round(velocity / 2000 * 25)
             scale = min(25, scale)
@@ -104,7 +110,7 @@ class Detector:
 
     """
 
-    def __init__(self, prev: bool):
+    def __init__(self, prev: bool, song_files: List[str]):
         """
         Initializes Detector class
 
@@ -129,7 +135,7 @@ class Detector:
             self.state = States.INIT
         else:
             self.state = States.CONFIRM_2
-            color_prefix = "../../resources/user-data/"
+            color_prefix = "../resources/user-data/"
             color_file = os.path.join(color_prefix, "colors.pickle")
             with open(color_file, "rb") as f:
                 self.colors = pickle.load(f)
@@ -141,11 +147,10 @@ class Detector:
         self.reset_thresh = self.height * 0.78
         self.height_thresh = self.height * 0.83
         self.distance = self.height_thresh - self.speed_thresh
-        prefix_dir = "../../resources/sounds/"
-        self.boxes = [CollisionBox(os.path.join(prefix_dir, "drum1.mp3"), (255, 0, 0)),
-                      CollisionBox(os.path.join(prefix_dir, "drum3.mp3"), (0, 255, 0), bias=5),
-                      CollisionBox(os.path.join(prefix_dir, "drum2.mp3"), (0, 0, 255), bias=3),
-                      CollisionBox(os.path.join(prefix_dir, "drum4.mp3"), (255, 0, 255), bias=5)]
+        colors = ((255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 0, 255))
+        self.boxes = []
+        for index, song in enumerate(song_files):
+            self.boxes.append(CollisionBox(song, colors[index], bias=5))
         self.webcam()
 
     def measure_color(self) -> None:
@@ -363,7 +368,7 @@ class Detector:
                     self.state = States.CONFIRM_1
                 else:
                     self.state = States.CONFIRM_2
-                color_prefix = "../../resources/user-data/"
+                color_prefix = "../resources/user-data/"
                 color_file = os.path.join(color_prefix, "colors.pickle")
                 with open(color_file, "wb") as f:
                     pickle.dump(self.colors, f)
@@ -375,7 +380,7 @@ class Detector:
             self.frame_queue.append(self.gray.copy())
             if len(self.frame_queue) > 3:
                 self.frame_queue.pop(0)
-            cv2.imshow('Input', self.processed)
+            cv2.imshow('Drumz', self.processed)
 
         cap.release()
         cv2.destroyAllWindows()
