@@ -15,7 +15,7 @@ class DrumzGUI:
 
         # building the GUI using tk
         self.mainwindow = tk.Tk() if master is None else tk.Toplevel(master)
-
+        self.mainwindow.title("Drumz")
         # potentialSoundFiles stores the files found in a directory
         self.potentialSoundFiles = []
 
@@ -219,7 +219,7 @@ class DrumzGUI:
     # called when the play now button is clicked
     def start_playing(self):
         if len(self.potentialSoundFiles) > 3:
-            detector = Detector(False, self.potentialSoundFiles)
+            Detector(False, self.potentialSoundFiles)
 
 
 if __name__ == '__main__':
